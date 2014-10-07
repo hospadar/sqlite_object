@@ -1,6 +1,13 @@
 from ._sqlite_object import SqliteObject
 import json, uuid
 
+"""
+from sqlite_object import  SqliteList
+l = SqliteList()
+l.append("hi")
+l.append("another one!")
+"""
+
 class SqliteList(SqliteObject):
     """
     List-like object backed by an on-disk SQL db
@@ -22,21 +29,24 @@ class SqliteList(SqliteObject):
     __schema = '''CREATE TABLE IF NOT EXISTS list (list_index INTEGER PRIMARY KEY, value TEXT)'''
     __index = '''CREATE INDEX IF NOT EXISTS list_value ON list (value)'''
     
-    self._len = 0
-    self._first_index = 0
+    _len = 0
+    _first_index = 0
     
     def __init__(self, filename=str(uuid.uuid4())+".sqlite3", coder=json.dumps, decoder=json.loads, index=True, persist=False, commit_every=0):
-        super(SqliteList, self).__init__(filename, coder, decoder, index=index, persist=persist, commit_every=commit_every)
+        super(SqliteList, self).__init__(self.__schema, self.__index, filename, coder, decoder, index=index, persist=persist, commit_every=commit_every)
         
-        #find the lowest index
-        with self.db.cursor() as cursor:
-            for row in cursor.execute('''SELECT MIN(list_index) FROM list'''):
-                self._first_index = row[0]
-                
         #set initial count
-        with self.db.cursor() as cursor:
+        with self._closeable_cursor() as cursor:
             for row in cursor.execute('''SELECT COUNT(*) FROM list'''):
                 self._len = row[0]
+        
+        #find the lowest index
+        if self._len > 0:
+            with self._closeable_cursor() as cursor:
+                for row in cursor.execute('''SELECT MIN(list_index) FROM list'''):
+                    self._first_index = row[0]
+                
+        
         
     def __len__(self):
         return self._len
@@ -54,41 +64,44 @@ class SqliteList(SqliteObject):
                     stop = self._len + stop
                 if step == None:
                     step == 1
-                for i in range(start, stop, step):
-                    yield self[i]
+                return (self[i] for i in range(start, stop, step))
             else:
                 raise TypeError("Key should be int, got " + str(type(key)))
         elif key >= self._len:
             raise IndexError("Sequence index out of range.")
         else:
-            with self.db.cursor() as cursor:
+            with self._closeable_cursor() as cursor:
+                if key < 0:
+                    key = self._len + key
+                    if key >= self._len:
+                        raise IndexError("Sequence index out of range.")
                 cursor.execute('''SELECT value FROM list WHERE list_index = ?''', (key + self._first_index, ))
-                return decoder(cursor.fetchone()[0])
+                return self.decoder(cursor.fetchone()[0])
     
     def __setitem__(self, key, value):
         if type(key) != int:
             raise TypeError("Key should be int, got " + str(type(key)))
         if key >= self._len:
             raise IndexError("Sequence index out of range.")
-        with self.db.cursor() as cursor:
-            cursor.execute('''REPLACE INTO list (list_index, value) VALUES (?,?)''', (key + self._first_index, coder(value)))
+        with self._closeable_cursor() as cursor:
+            cursor.execute('''REPLACE INTO list (list_index, value) VALUES (?,?)''', (key + self._first_index, self.coder(value)))
         self._do_write()
         
     def __iter__(self):
-        with db.cursor() as cursor:
-            self.cursor.execute('''SELECT value FROM list ORDER BY list_index ASC''')
+        with self._closeable_cursor() as cursor:
+            cursor.execute('''SELECT value FROM list ORDER BY list_index ASC''')
             for row in cursor:
-                yield row[0]
+                yield self.decoder(row[0])
                 
     def __reversed__(self):
-        with self.db.cursor() as cursor:
+        with self._closeable_cursor() as cursor:
             cursor.execute('''SELECT value FROM list ORDER BY list_index DESC''')
             for row in cursor:
-                yield row[0]
+                yield self.decoder(row[0])
                 
     def __contains__(self, item):
-        with self.db.cursor() as cursor:
-            cursor.execute('''SELECT list_index FROM list WHERE value = ?''', (coder(value), ))
+        with self._closeable_cursor() as cursor:
+            cursor.execute('''SELECT list_index FROM list WHERE value = ?''', (self.coder(value), ))
             if cursor.fetchone() != None:
                 return True
             else:
@@ -98,8 +111,8 @@ class SqliteList(SqliteObject):
         """
         Add an item to the end of the list
         """
-        with self.db.cursor() as cursor:
-            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index + self._len, coder(item)) )
+        with self._closeable_cursor() as cursor:
+            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index + self._len, self.coder(item)) )
             self._len += 1 
         self._do_write()
         
@@ -107,25 +120,32 @@ class SqliteList(SqliteObject):
         """
         Insert an item at the front of the list
         """
-        with self.db.cursor() as cursor:
-            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index - 1, coder(item)) )
+        with self._closeable_cursor() as cursor:
+            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index - 1, self.coder(item)) )
             self._len += 1
             self._first_index -= 1
         self._do_write()
             
     
     def pop(self):
-        with self.db.cursor() as cursor:
-            cursor.execute('''DELETE FROM list WHERE list_index = ?''', (self._first_index + self._len -1, ) )
-            self._len -= 1
-        self._do_write()
+        if self._len > 0:
+            val_to_pop = self[-1]
+            with self._closeable_cursor() as cursor:
+                cursor.execute('''DELETE FROM list WHERE list_index = ?''', (self._first_index + self._len -1, ) )
+                self._len -= 1
+            self._do_write()
+            return val_to_pop
+            
     
     def pop_front(self):
-        with self.db.cursor() as cursor:
-            cursor.execute('''DELETE FROM list WHERE list_index = ?''', (self._first_index, ) )
-            self._first_index += 1
-            self._len -= 1
-        self._do_write()
+        if self._len > 0:
+            val_to_pop = self[0]
+            with self._closeable_cursor() as cursor:
+                cursor.execute('''DELETE FROM list WHERE list_index = ?''', (self._first_index, ) )
+                self._first_index += 1
+                self._len -= 1
+            self._do_write()
+            return val_to_pop
         
     def extend(self, iterable):
         """
