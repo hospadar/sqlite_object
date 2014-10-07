@@ -1,28 +1,26 @@
 import sqlite3, os, logging
 
-class SqliteObject:
+class SqliteObject(object):
     
-    
-    
-    commit_counter = 0
+    _commit_counter = 0
     
     def is_open(self):
         return self._is_open
     
     def __init__(self, schema, index_command, filename, coder, decoder, index=True, persist=False, commit_every=0):
-        self.db = sqlite3.connect(filename)
-        self.persist = persist
-        self.filename = filename
-        self.logger = logging.getLogger(__name__)
+        self._db = sqlite3.connect(filename)
+        self._persist = persist
+        self._filename = filename
+        self._logger = logging.getLogger(__name__)
         with self._closeable_cursor() as cursor:
             cursor.execute(schema)
             if index:
                 cursor.execute(index_command)
-            self.db.commit()
+            self._db.commit()
         self._is_open = True
-        self.coder = coder
-        self.decoder = decoder
-        self.commit_every = commit_every
+        self._coder = coder
+        self._decoder = decoder
+        self._commit_every = commit_every
         
     def __enter__(self):
         return self
@@ -31,20 +29,20 @@ class SqliteObject:
         self.close()
         
     def close(self):
-        self.logger.debug("closing db")
+        self._logger.debug("closing db")
         self._is_open = False
-        if self.persist:
+        if self._persist:
             #commit and close, don't delete
-            self.db.commit()
-            self.db.close()
+            self._db.commit()
+            self._db.close()
         else:
             
             #don't bother commiting, just close and delete
-            self.db.close()
+            self._db.close()
             try:
-                os.remove(self.filename)
+                os.remove(self._filename)
             except:
-                logger.warn("Unable to remove db file " + self.filename)
+                logger.warn("Unable to remove db file " + self._filename)
                 
                 
     def __del__(self):
@@ -54,10 +52,10 @@ class SqliteObject:
         """
         Check commit counter and do a commit if need be
         """
-        self.commit_counter += 1
-        if self.commit_counter >= self.commit_every:
-            self.db.commit()
-            self.commit_counter = 0
+        self._commit_counter += 1
+        if self._commit_counter >= self._commit_every:
+            self._db.commit()
+            self._commit_counter = 0
            
     class _CloseableCursor(sqlite3.Cursor):
         def __init__(self, *args, **kwargs):
@@ -69,7 +67,7 @@ class SqliteObject:
             self.close()
             
     def _closeable_cursor(self):
-        cursor = self.db.cursor(self._CloseableCursor)
+        cursor = self._db.cursor(self._CloseableCursor)
         return cursor
         
     

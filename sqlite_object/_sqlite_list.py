@@ -76,7 +76,7 @@ class SqliteList(SqliteObject):
                     if key >= self._len:
                         raise IndexError("Sequence index out of range.")
                 cursor.execute('''SELECT value FROM list WHERE list_index = ?''', (key + self._first_index, ))
-                return self.decoder(cursor.fetchone()[0])
+                return self._decoder(cursor.fetchone()[0])
     
     def __setitem__(self, key, value):
         if type(key) != int:
@@ -84,24 +84,24 @@ class SqliteList(SqliteObject):
         if key >= self._len:
             raise IndexError("Sequence index out of range.")
         with self._closeable_cursor() as cursor:
-            cursor.execute('''REPLACE INTO list (list_index, value) VALUES (?,?)''', (key + self._first_index, self.coder(value)))
+            cursor.execute('''REPLACE INTO list (list_index, value) VALUES (?,?)''', (key + self._first_index, self._coder(value)))
         self._do_write()
         
     def __iter__(self):
         with self._closeable_cursor() as cursor:
             cursor.execute('''SELECT value FROM list ORDER BY list_index ASC''')
             for row in cursor:
-                yield self.decoder(row[0])
+                yield self._decoder(row[0])
                 
     def __reversed__(self):
         with self._closeable_cursor() as cursor:
             cursor.execute('''SELECT value FROM list ORDER BY list_index DESC''')
             for row in cursor:
-                yield self.decoder(row[0])
+                yield self._decoder(row[0])
                 
     def __contains__(self, item):
         with self._closeable_cursor() as cursor:
-            cursor.execute('''SELECT list_index FROM list WHERE value = ?''', (self.coder(value), ))
+            cursor.execute('''SELECT list_index FROM list WHERE value = ?''', (self._coder(value), ))
             if cursor.fetchone() != None:
                 return True
             else:
@@ -112,7 +112,7 @@ class SqliteList(SqliteObject):
         Add an item to the end of the list
         """
         with self._closeable_cursor() as cursor:
-            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index + self._len, self.coder(item)) )
+            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index + self._len, self._coder(item)) )
             self._len += 1 
         self._do_write()
         
@@ -121,13 +121,13 @@ class SqliteList(SqliteObject):
         Insert an item at the front of the list
         """
         with self._closeable_cursor() as cursor:
-            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index - 1, self.coder(item)) )
+            cursor.execute('''INSERT INTO list (list_index, value) VALUES (?, ?)''', (self._first_index - 1, self._coder(item)) )
             self._len += 1
             self._first_index -= 1
         self._do_write()
             
     
-    def pop(self):
+    def pop_last(self):
         if self._len > 0:
             val_to_pop = self[-1]
             with self._closeable_cursor() as cursor:
@@ -137,7 +137,7 @@ class SqliteList(SqliteObject):
             return val_to_pop
             
     
-    def pop_front(self):
+    def pop_first(self):
         if self._len > 0:
             val_to_pop = self[0]
             with self._closeable_cursor() as cursor:
