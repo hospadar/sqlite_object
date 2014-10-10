@@ -3,12 +3,13 @@ from sqlite_object import SqliteList
 import unittest, os
 
 
+
 class TestSqliteObjects(unittest.TestCase):
-    def test_list(self):
-        l = SqliteList()
+    
+    def run_list_tests(self, l):
         for i in range(10):
-            l.append(i)
-            
+                l.append(i)
+                
         #Test appending, prepending, and popping of either end of the list
         self.assertEqual(10, len(l))
         self.assertEqual(0, l[0])
@@ -58,6 +59,14 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertRaises(IndexError, l.__getitem__, -50)
         self.assertRaises(IndexError, l.__setitem__, -50, 1)
     
+    def test_list(self):
+        #run a bunch o tests
+        l = SqliteList()
+        self.run_list_tests(l)
+        
+        #make sure it still works when you turn off indexing
+        l = SqliteList(index=False)
+        self.run_list_tests(l)
     
         #test initializer
         l = SqliteList(["a", "b", "c"])
