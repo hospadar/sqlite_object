@@ -1,4 +1,4 @@
-import sqlite3, os, logging
+import sqlite3, os
 
 from threading import RLock
 
@@ -14,7 +14,6 @@ class SqliteObject(object):
         self._db = sqlite3.connect(filename)
         self._persist = persist
         self._filename = filename
-        self._logger = logging.getLogger(__name__)
         with self.lock:
             with self._closeable_cursor() as cursor:
                 cursor.execute(schema)
@@ -34,20 +33,18 @@ class SqliteObject(object):
         
     def close(self):
         with self.lock:
-            self._logger.debug("closing db")
             self._is_open = False
             if self._persist:
                 #commit and close, don't delete
                 self._db.commit()
                 self._db.close()
             else:
-                
                 #don't bother commiting, just close and delete
                 self._db.close()
                 try:
                     os.remove(self._filename)
                 except:
-                    self._logger.warning("Unable to remove db file " + self._filename + " (probably already deleted or write protected)")
+                    pass
                 
                 
     def __del__(self):
