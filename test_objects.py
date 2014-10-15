@@ -139,6 +139,10 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertIn(2, d)
         self.assertEqual(5, d["1"])
         
+        d = SqliteDict({1:"a", 2:"b", 3:"c", "1":5}, filename="mydict.sqlite")
+        d2 = SqliteDict(filename="mydict.sqlite")
+        
+        self.assertEqual(set([x for x in d.items()]), set([x for x in d2.items()]))
         
         
 if __name__ == '__main__':

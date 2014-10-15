@@ -51,6 +51,7 @@ class SqliteDict(SqliteObject):
         else:
             with self._closeable_cursor() as cursor:
                 cursor.execute('''REPLACE INTO dict (key, value) VALUES (?, ?)''', (self._coder(key), self._coder(value)))
+        self._do_write()
                 
     def __delitem__(self, key):
         if type(key) == slice:
@@ -58,6 +59,7 @@ class SqliteDict(SqliteObject):
         else:
             with self._closeable_cursor() as cursor:
                 cursor.execute('''DELETE FROM dict WHERE key = ?''', (self._coder(key),) )
+        self._do_write()
                 
     def __iter__(self):
         with self._closeable_cursor() as cursor:
@@ -99,6 +101,7 @@ class SqliteDict(SqliteObject):
                 value = self._decoder(row[1])
                 del self[key]
                 return (key, value)
+        self._do_write()
     
     def setdefault(self, key, default=None):
         try:
@@ -106,6 +109,7 @@ class SqliteDict(SqliteObject):
         except KeyError:
             self[key] = default
             return default
+        self._do_write()
         
     def update(self, other=None, **kwargs):
         if "items" in dir(other):
