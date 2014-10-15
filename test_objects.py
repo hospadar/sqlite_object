@@ -1,4 +1,5 @@
-from sqlite_object import SqliteList
+from __future__ import print_function
+from sqlite_object import SqliteList, SqliteDict
 
 import unittest, os
 
@@ -60,6 +61,7 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertRaises(IndexError, l.__setitem__, -50, 1)
     
     def test_list(self):
+        print("Testing list")
         #run a bunch o tests
         l = SqliteList()
         self.run_list_tests(l)
@@ -93,6 +95,50 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertRaises(NameError, eval, "thing")
         self.assertTrue(os.path.exists("doodad.sqlite3"))
         os.remove("doodad.sqlite3")
+        
+    def run_dict_tests(self, d):
+        d["1"] = "a"
+        d["2"] = "b"
+        d["3"] = "c"
+        self.assertIn("1", d)
+        self.assertIn("2", d)
+        self.assertIn("3", d)
+        self.assertEqual("a", d["1"])
+        self.assertEqual("b", d["2"])
+        self.assertEqual("c", d["3"])
+        self.assertEqual(3, len(d))
+        del d["2"]
+        self.assertNotIn("2", d)
+        self.assertEqual("a", d["1"])
+        self.assertEqual("c", d["3"])
+        self.assertEqual(2, len(d))
+        d.update({"1":20, "thing":"other"})
+        self.assertEqual(3, len(d))
+        self.assertEqual(20, d["1"])
+        self.assertEqual("other", d["thing"])
+        d["1"] += 1
+        d["1"] += 1
+        self.assertEqual(22, d["1"])
+        self.assertEqual({"1", "3", "thing"}, set([x for x in d.keys()]))
+        self.assertEqual({22, "c", "other"}, set([x for x in d.values()]))
+        self.assertEqual({("1", 22), ("3", "c"), ("thing", "other")}, set([x for x in d.items()]))
+        
+    def test_dict(self):
+        print("Running dict tests")
+        d = SqliteDict()
+        self.run_dict_tests( d)
+        
+        d = SqliteDict(index=False)
+        self.run_dict_tests(d)
+        d["extra"] = "item"
+        
+        d2 = SqliteDict({1:"a", 2:"b", 3:"c", "1":5})
+        d.update(d2)
+        self.assertEqual(7, len(d))
+        self.assertIn(1, d)
+        self.assertIn(2, d)
+        self.assertEqual(5, d["1"])
+        
         
         
 if __name__ == '__main__':

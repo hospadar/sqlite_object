@@ -23,8 +23,10 @@ class SqliteDict(SqliteObject):
     
     
     
-    def __init__(self, filename=str(uuid.uuid4())+".sqlite3", coder=json.dumps, decoder=json.loads, index=True, persist=False, commit_every=0):
-        super(SqliteList, self).__init__(self.__schema, self.__index, filename, coder, decoder, index=index, persist=persist, commit_every=commit_every)
+    def __init__(self, init_dict={}, filename=None, coder=json.dumps, decoder=json.loads, index=True, persist=False, commit_every=0):
+        super(SqliteDict, self).__init__(self.__schema, self.__index, filename or str(uuid.uuid4())+".sqlite3", coder, decoder, index=index, persist=persist, commit_every=commit_every)
+        for key, value in init_dict.items():
+            self[key] = value
         
     def __len__(self):
         with self._closeable_cursor() as cursor:
@@ -39,7 +41,7 @@ class SqliteDict(SqliteObject):
                 cursor.execute('''SELECT value FROM dict WHERE key = ?''', (self._coder(key), ))
                 row = cursor.fetchone()
                 if row != None:
-                    return self.decoder(row[0])
+                    return self._decoder(row[0])
                 else:
                     raise KeyError("Mapping key not found in dict")
     

@@ -1,2 +1,2 @@
-from ._sqlite_set import SqliteOrderedSet
+from ._sqlite_dict import SqliteDict
 from ._sqlite_list import SqliteList
