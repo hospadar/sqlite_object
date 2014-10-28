@@ -1,5 +1,5 @@
 from __future__ import print_function
-from sqlite_object import SqliteList, SqliteDict
+from sqlite_object import SqliteList, SqliteDict, SqliteSet
 
 import unittest, os
 
@@ -61,7 +61,6 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertRaises(IndexError, l.__setitem__, -50, 1)
     
     def test_list(self):
-        print("Testing list")
         #run a bunch o tests
         l = SqliteList()
         self.run_list_tests(l)
@@ -124,7 +123,6 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertEqual({("1", 22), ("3", "c"), ("thing", "other")}, set([x for x in d.items()]))
         
     def test_dict(self):
-        print("Running dict tests")
         d = SqliteDict()
         self.run_dict_tests( d)
         
@@ -144,6 +142,69 @@ class TestSqliteObjects(unittest.TestCase):
         
         self.assertEqual(set([x for x in d.items()]), set([x for x in d2.items()]))
         
+    def run_set_tests(self, s):
+        s.add(1)
+        s.add(2)
+        s.add(3)
+        self.assertEqual(3, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertTrue(3 in s)
+        
+        s.update({3, 4, 5})
+        
+        self.assertEqual(5, len(s))
+        
+        l = set([x for x in s])
+        self.assertTrue(s == l)
+        
+        self.assertTrue(s <= {1,2,3,4,5})
+        self.assertFalse(s < {1,2,3,4,5})
+        self.assertTrue(s < {1,2,3,4,5, 6})
+        
+        self.assertTrue(s >= {1,2,3,4,5})
+        self.assertFalse(s > {1,2,3,4,5})
+        self.assertTrue(s > {1,2,3,4})
+        
+        self.assertTrue(s.isdisjoint({10, 11, "hello"}))
+        
+        s.remove(1)
+        self.assertTrue( 1 not in s)
+        self.assertEqual(4, len(s))
+        
+        self.assertRaises(KeyError, s.remove, 12)
+        
+        #should NOT throw an exception
+        s.discard(56)
+        
+        s.discard(2)
+        self.assertTrue( 2 not in s)
+        self.assertEqual(3, len(s))
+        
+        thing = s.pop()
+        self.assertEqual(2, len(s))
+        self.assertTrue(thing not in s)
+        
+        
+    def test_set(self):
+        s = SqliteSet()
+        self.run_set_tests(s)
+        
+        s = SqliteSet(index=False)
+        self.run_set_tests(s)
+        
+        s = SqliteSet({1, 2, 3})
+        self.assertEqual(3, len(s))
+        self.assertTrue(1 in s)
+        self.assertTrue(2 in s)
+        self.assertTrue(3 in s)
+        self.run_set_tests(s)
+        
+        s = SqliteSet({1, 2, 3, 4, 5})
+        s2 = SqliteSet(filename=s.get_filename())
+        
+        self.assertEqual(5, len(s2))
+        self.assertEqual(s, s2)
         
 if __name__ == '__main__':
     unittest.main()

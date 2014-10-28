@@ -74,4 +74,5 @@ class SqliteObject(object):
             cursor = self._db.cursor(self._CloseableCursor)
             return cursor
         
-    
+    def get_filename(self):
+        return self._filename
