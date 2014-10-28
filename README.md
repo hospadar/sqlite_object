@@ -41,7 +41,7 @@ s = SqliteSet({1, 2, 3})
 #All of the objects can be created this way.
 l = SqliteList([1, 2, 3], filename="/var/something/db/my_awesome_db.sqlite3", persist=True)
 
-Then if you need to create it later, it will come back with the same data
+#Then if you need to create it later, it will come back with the same data
 del l
 l2 = SqliteList(filename="/var/something/db/my_awesome_db.sqlite3", persist=True)
 
