@@ -15,12 +15,18 @@ Supported list behavior
 
 - **list[index]**
     Indexing:
-    Read, overwrite, increment operations all work as with an ordinary python list
+    Read, overwrite, increment operations all work as with an ordinary python list.
+    
+- **for item in list:**
+    Iterating:
+    SqliteList objects can be iterated over just like a normal list.  Iterating over the list will lock the list so nothing else can use it.
     
 -  **list[0:12], list[1:30:2]**
     Slicing: 
     SqliteLists can be sliced just like normal lists, except that slices return an iterator over the slice.
-    Use caution when slicing in a multithreaded situation, the underlying database could change mid-slice.
+    Use caution when slicing in a multithreaded situation, the generator returned by a slice **does not** lock the list.
+    For many applications, iterating over the whole list may be more efficient than slicing.
+    
     
 - **len(list)**
     len() works as normal, returning the size of the list.
