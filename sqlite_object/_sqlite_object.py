@@ -46,7 +46,10 @@ class SqliteObject(object):
                 except:
                     pass
                 
-                
+    def commit(self):
+        with self.lock:
+            self._db.commit()
+    
     def __del__(self):
         self.close()
         

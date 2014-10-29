@@ -63,6 +63,11 @@ class SqliteList(SqliteObject):
                     return row[0]
             #if there's nothing in the list, return 0
             return 0
+        
+    def _iterate(self, length, irange):
+        for i in irange:
+            if i >= 0 and i<length:
+                yield self[i]
     
     def __getitem__(self, key):
         with self.lock:
@@ -70,16 +75,18 @@ class SqliteList(SqliteObject):
                 length = self._getlen(cursor)
             if type(key) != int:
                 if type(key) == slice:
-                    start = key.start
-                    stop = key.stop
-                    step = key.step
-                    if start < 0:
-                        start = length + start
-                    if stop < 0:
-                        stop = length + stop
-                    if step == None:
-                        step == 1
-                    return (self._getitem(cursor, i) for i in range(start, stop, step))
+                    #start = key.start or (0 if key.step > 0 else max(length, 0))
+                    #stop = key.stop or (length if key.step > 0 else 0)
+                    #step = key.step or 1
+                    #if start < 0:
+                    #    start = length + start
+                    #if stop < 0:
+                    #    stop = length + stop
+                    ##if step < 0:
+                    ##    tmp = start
+                    ##    start = max(stop - 1, 0)
+                    ##    stop = tmp
+                    return (self._iterate(length, range(length)[key.start:key.stop:key.step]))
                 else:
                     raise TypeError("Key should be int, got " + str(type(key)))
             elif key >= length:

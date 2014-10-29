@@ -95,6 +95,21 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertTrue(os.path.exists("doodad.sqlite3"))
         os.remove("doodad.sqlite3")
         
+        l = SqliteList(range(10))
+        
+        l = SqliteList(range(10))
+        self.assertEqual([0, 2, 4, 6, 8], [x for x in l[::2]])
+        self.assertEqual([9, 7, 5, 3, 1], [x for x in l[::-2]])
+        self.assertEqual([1], [x for x in l[1:2]])
+        self.assertEqual([1, 2], [x for x in l[1:3]])
+        self.assertEqual([3, 2], [x for x in l[3:1:-1]])
+        self.assertEqual([9], [x for x in l[9:100]])
+        
+        
+        
+
+
+        
     def run_dict_tests(self, d):
         d["1"] = "a"
         d["2"] = "b"
