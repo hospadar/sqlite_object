@@ -14,6 +14,8 @@ The package is available on pypi: https://pypi.python.org/pypi/sqlite_object
 sudo pip install sqlite_object
 ```
 
+Full package docs here: https://pythonhosted.org/sqlite_object/
+
 The objects are pretty easy to use, and generally behave like their in-memory counterparts.  The unit tests (test_objects.py) contain more in-depth examples.
 ```python
 from sqlite_object import SqliteDict, SqliteList, SqliteSet
