@@ -96,8 +96,6 @@ class TestSqliteObjects(unittest.TestCase):
         os.remove("doodad.sqlite3")
         
         l = SqliteList(range(10))
-        
-        l = SqliteList(range(10))
         self.assertEqual([0, 2, 4, 6, 8], [x for x in l[::2]])
         self.assertEqual([9, 7, 5, 3, 1], [x for x in l[::-2]])
         self.assertEqual([1], [x for x in l[1:2]])
@@ -106,9 +104,10 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertEqual([9], [x for x in l[9:100]])
         
         
-        
-
-
+        l = SqliteList(range(10))
+        self.assertEqual(10, len(l))
+        l.clear()
+        self.assertEqual(0, len(l))
         
     def run_dict_tests(self, d):
         d["1"] = "a"
@@ -156,6 +155,11 @@ class TestSqliteObjects(unittest.TestCase):
         d2 = SqliteDict(filename="mydict.sqlite")
         
         self.assertEqual(set([x for x in d.items()]), set([x for x in d2.items()]))
+        
+        d = SqliteDict({1:"a", 2:"b", 3:"c", "1":5})
+        self.assertEqual(4, len(d))
+        d.clear()
+        self.assertEqual(0, len(d))
         
     def run_set_tests(self, s):
         s.add(1)
@@ -220,6 +224,11 @@ class TestSqliteObjects(unittest.TestCase):
         
         self.assertEqual(5, len(s2))
         self.assertEqual(s, s2)
+        
+        s = SqliteSet(range(10))
+        self.assertEqual(10, len(s))
+        s.clear()
+        self.assertEqual(0, len(s))
         
 if __name__ == '__main__':
     unittest.main()

@@ -29,97 +29,109 @@ class SqliteDict(SqliteObject):
             self[key] = value
         
     def __len__(self):
-        with self._closeable_cursor() as cursor:
-            for row in cursor.execute('''SELECT COUNT(*) FROM dict'''):
-                return row[0]
+        with self.lock:
+            with self._closeable_cursor() as cursor:
+                for row in cursor.execute('''SELECT COUNT(*) FROM dict'''):
+                    return row[0]
     
     def __getitem__(self, key):
-        if type(key) == slice:
-            raise KeyError("Slices not allowed in SqliteDict")
-        else:
-            with self._closeable_cursor() as cursor:
-                cursor.execute('''SELECT value FROM dict WHERE key = ?''', (self._coder(key), ))
-                row = cursor.fetchone()
-                if row != None:
-                    return self._decoder(row[0])
-                else:
-                    raise KeyError("Mapping key not found in dict")
+        with self.lock:
+            if type(key) == slice:
+                raise KeyError("Slices not allowed in SqliteDict")
+            else:
+                with self._closeable_cursor() as cursor:
+                    cursor.execute('''SELECT value FROM dict WHERE key = ?''', (self._coder(key), ))
+                    row = cursor.fetchone()
+                    if row != None:
+                        return self._decoder(row[0])
+                    else:
+                        raise KeyError("Mapping key not found in dict")
     
     def __setitem__(self, key, value):
-        if type(key) == slice:
-            raise KeyError("Slices not allowed in SqliteDict")
-        else:
-            with self._closeable_cursor() as cursor:
-                cursor.execute('''REPLACE INTO dict (key, value) VALUES (?, ?)''', (self._coder(key), self._coder(value)))
-        self._do_write()
+        with self.lock:
+            if type(key) == slice:
+                raise KeyError("Slices not allowed in SqliteDict")
+            else:
+                with self._closeable_cursor() as cursor:
+                    cursor.execute('''REPLACE INTO dict (key, value) VALUES (?, ?)''', (self._coder(key), self._coder(value)))
+            self._do_write()
                 
     def __delitem__(self, key):
-        if type(key) == slice:
-            raise KeyError("Slices not allowed in SqliteDict")
-        else:
-            with self._closeable_cursor() as cursor:
-                cursor.execute('''DELETE FROM dict WHERE key = ?''', (self._coder(key),) )
-        self._do_write()
+        with self.lock:
+            if type(key) == slice:
+                raise KeyError("Slices not allowed in SqliteDict")
+            else:
+                with self._closeable_cursor() as cursor:
+                    cursor.execute('''DELETE FROM dict WHERE key = ?''', (self._coder(key),) )
+            self._do_write()
                 
     def __iter__(self):
-        with self._closeable_cursor() as cursor:
-            for row in cursor.execute('''SELECT key FROM dict'''):
-                yield self._decoder(row[0])
+        with self.lock:
+            with self._closeable_cursor() as cursor:
+                for row in cursor.execute('''SELECT key FROM dict'''):
+                    yield self._decoder(row[0])
                 
     def __contains__(self, key):
-        try:
-            val = self[key]
-        except KeyError:
-            return False
-        else:
-            return True
+        with self.lock:
+            try:
+                val = self[key]
+            except KeyError:
+                return False
+            else:
+                return True
         
     def clear(self):
-        with self._closeable_cursor() as cursor:
-            cursor.execute('''DELETE FROM dict''')
+        with self.lock:
+            with self._closeable_cursor() as cursor:
+                cursor.execute('''DELETE FROM dict''')
             
     def get(self, key, default=None):
-        try:
-            val = self[key]
-        except KeyError:
-            val = default
-        return val
+        with self.lock:
+            try:
+                val = self[key]
+            except KeyError:
+                val = default
+            return val
     
     def pop(self, key, default=None):
-        val = self[key]
-        del self[key]
-        return val
+        with self.lock:
+            val = self[key]
+            del self[key]
+            return val
     
     def popitem(self):
-        with self._closeable_cursor() as cursor:
-            cursor.execute('''SELECT key, value FROM dict LIMIT 1''')
-            row = cursor.fetchone()
-            if row ==  None:
-                raise KeyError("Dict has no more items to pop")
-            else:
-                key = self._decoder(row[0])
-                value = self._decoder(row[1])
-                del self[key]
-                return (key, value)
-        self._do_write()
+        with self.lock:
+            with self._closeable_cursor() as cursor:
+                cursor.execute('''SELECT key, value FROM dict LIMIT 1''')
+                row = cursor.fetchone()
+                if row ==  None:
+                    raise KeyError("Dict has no more items to pop")
+                else:
+                    key = self._decoder(row[0])
+                    value = self._decoder(row[1])
+                    del self[key]
+                    return (key, value)
+            self._do_write()
     
     def setdefault(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            self[key] = default
-            return default
-        self._do_write()
+        with self.lock:
+            try:
+                return self[key]
+            except KeyError:
+                self[key] = default
+                return default
+            self._do_write()
         
     def update(self, other=None, **kwargs):
-        if "items" in dir(other):
-            for key, value in other.items():
+        with self.lock:
+            if "items" in dir(other):
+                for key, value in other.items():
+                    self[key] = value
+            else:
+                for key, value in other:
+                    self[key] = value
+            for key, value in kwargs:
                 self[key] = value
-        else:
-            for key, value in other:
-                self[key] = value
-        for key, value in kwargs:
-            self[key] = value
             
     
     class ItemView(object):

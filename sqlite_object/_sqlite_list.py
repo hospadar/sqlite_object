@@ -199,7 +199,10 @@ class SqliteList(SqliteObject):
                 self.append(item)
             
             
-            
+    def clear(self):
+        with self.lock:
+            with self._closeable_cursor() as cursor:
+                cursor.execute('''DELETE FROM list''')
             
             
             

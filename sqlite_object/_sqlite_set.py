@@ -127,6 +127,8 @@ class SqliteSet(SqliteObject):
         for item in other:
             self.add(item)
     
-        
-    
+    def clear(self):
+        with self.lock:
+            with self._closeable_cursor() as cursor:
+                cursor.execute('''DELETE FROM set_table''')
     

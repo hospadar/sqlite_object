@@ -31,7 +31,6 @@ Supported set behavior
     
 - **item in set**
     Membership testing:
-    Supported (mostly)
     Membership testing will be slow for large sets with indexing turned off (indexing is turned on by default)
     
 - **set <= other_set**
