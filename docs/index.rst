@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 
-sqlite_object intro!
+sqlite_object
 =========================================
 
 **Sqlite Object is a library of python containers backed by sqlite databases**
@@ -14,6 +14,15 @@ This library implements a list, set, and dict which behave very similarly to the
 sqlite_objects can also be easily persisted since their data is always stored to sqlite.
 
 The source code is available at GitHub_.
+
+Module documentation
+--------------------
+
+:ref:`SqliteList`: List-like object
+
+:ref:`SqliteSet`: Set-like object
+
+:ref:`SqliteDict`: Dict-like object
 
 Installation and basic usage
 -----------------------------
@@ -60,8 +69,7 @@ Sqlite objects support *almost* all of the functions of their builtin counterpar
 
 .. _GitHub: https://github.com/hospadar/sqlite_object
 
-.. toctree::
-   :maxdepth: 2
+
    
    
 

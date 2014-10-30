@@ -1,6 +1,9 @@
 .. index::
     single: SqliteList
+
+.. _SqliteList:
     
+==========
 SqliteList
 ==========
     
