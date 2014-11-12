@@ -96,7 +96,7 @@ Other functions
     
     Remove an item from the set and return it.  If the set is empty, raise a **KeyError**
     
-.. py:function:: isdisjoin(other)
+.. py:function:: isdisjoint(other)
 
     Test if this set is disjoint from other (i.e. if the intersection of this set and other is an empty set).
     
