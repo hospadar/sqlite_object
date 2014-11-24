@@ -52,6 +52,7 @@ Supported set behavior
 - **set == other_set**
     Set equality:
     Test equality of this set to another set
+
     
 
     
@@ -120,6 +121,20 @@ Other functions
     
     :param iterable: An iterable of items to add to the set.
     
+.. py:function:: write(file)
+
+    Write the entire set out to a file as a JSON list
+    
+    :param file: A file object to write to
+    
+.. py:function:: write_lines(file, coder=json.dumps, separator="\\n")
+
+    Write each item in the set to a file as JSON, one item per line.
+    
+    :param file: A file object to write to
+    :param coder: A function to serialize each object before writing it to file
+    :param separator: A string to use as a separator if you don't want newline characters
+
 .. py:function:: close():
     
     Explicitly close the database, deleting the database file if persist=False

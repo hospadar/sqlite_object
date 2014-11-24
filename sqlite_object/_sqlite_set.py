@@ -131,4 +131,58 @@ class SqliteSet(SqliteObject):
         with self.lock:
             with self._closeable_cursor() as cursor:
                 cursor.execute('''DELETE FROM set_table''')
+                
+    def write(self, outfile):
+        with self.lock:
+            outfile.write("[")
+            iterator = iter(self)
+            try:
+                try:
+                    this = iterator.__next__()
+                except AttributeError:
+                    this = iterator.next()
+            except StopIteration:
+                outfile.write("]")
+                return
+            else:
+                while True:
+                    outfile.write(json.dumps(this))
+                    try:
+                        try:
+                            this = iterator.__next__()
+                        except AttributeError:
+                            this = iterator.next()
+                    except StopIteration:
+                        outfile.write("]")
+                        break
+                    else:
+                        outfile.write(",")
+                        
+    def write_lines(self, outfile, coder=json.dumps, separator="\n"):
+        with self.lock:
+            iterator = iter(self)
+            try:
+                try:
+                    this = iterator.__next__()
+                except AttributeError:
+                    this = iterator.next()
+            except StopIteration:
+                return
+            else:
+                while True:
+                    outfile.write(coder(this))
+                    outfile.write(separator)
+                    try:
+                        try:
+                            this = iterator.__next__()
+                        except AttributeError:
+                            this = iterator.next()
+                    except StopIteration:
+                        break
+                        
+                        
+                
+        
+        
+        
     

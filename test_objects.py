@@ -1,5 +1,11 @@
 from __future__ import print_function
 from sqlite_object import SqliteList, SqliteDict, SqliteSet
+try:
+    from io import StringIO
+except:
+    from StringIO import StringIO
+
+import json
 
 import unittest, os
 
@@ -109,6 +115,16 @@ class TestSqliteObjects(unittest.TestCase):
         l.clear()
         self.assertEqual(0, len(l))
         
+        l = SqliteList(range(5))
+        io = StringIO()
+        l.write(io)
+        self.assertEqual([x for x in range(5)], json.loads(io.getvalue()))
+        
+        l = SqliteList(range(5))
+        io = StringIO()
+        l.write_lines(io)
+        self.assertEqual(["0", "1", "2", "3", "4"], io.getvalue().strip().split("\n"))
+        
     def run_dict_tests(self, d):
         d["1"] = "a"
         d["2"] = "b"
@@ -160,6 +176,18 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertEqual(4, len(d))
         d.clear()
         self.assertEqual(0, len(d))
+        
+        d = SqliteDict({1:"a", 2:"b", 3:"c"})
+        io = StringIO()
+        d.write(io)
+        self.assertEqual({"1":"a", "2":"b", "3":"c"}, json.loads(io.getvalue()))
+        
+        d = SqliteDict({1:"a", 2:"b", 3:"c"})
+        io = StringIO()
+        d.write_lines(io)
+        values = sorted([line.split("\t") for line in io.getvalue().strip().split("\n")])
+        self.assertEqual([["1", '"a"'], ["2", '"b"'], ['3', '"c"']], values)
+            
         
     def run_set_tests(self, s):
         s.add(1)
@@ -229,6 +257,18 @@ class TestSqliteObjects(unittest.TestCase):
         self.assertEqual(10, len(s))
         s.clear()
         self.assertEqual(0, len(s))
+        
+        s = SqliteSet({1, 2, 3, 4, 5})
+        io = StringIO()
+        s.write(io)
+        self.assertEqual({1, 2, 3, 4, 5}, set(json.loads(io.getvalue())))
+        
+        s = SqliteSet({1, 2, 3, 4, 5})
+        io = StringIO()
+        s.write_lines(io)
+        self.assertEqual({"1", "2", "3", "4", "5"}, set(io.getvalue().strip().split("\n")))
+        self.assertEqual(["1", "2", "3", "4", "5"], sorted(io.getvalue().strip().split("\n")))
+        
         
 if __name__ == '__main__':
     unittest.main()

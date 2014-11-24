@@ -197,3 +197,57 @@ class SqliteDict(SqliteObject):
     
     def values(self):
         return self.ValueView(self)
+    
+    
+    def write(self, outfile):
+        with self.lock:
+            outfile.write("{")
+            iterator = iter(self.items())
+            try:
+                try:
+                    this = iterator.__next__()
+                except AttributeError:
+                    this = iterator.next()
+            except StopIteration:
+                outfile.write("}")
+                return
+            else:
+                while True:
+                    outfile.write(json.dumps(str(this[0])))
+                    outfile.write(":")
+                    outfile.write(json.dumps(this[1]))
+                    try:
+                        try:
+                            this = iterator.__next__()
+                        except AttributeError:
+                            this = iterator.next()
+                    except StopIteration:
+                        outfile.write("}")
+                        break
+                    else:
+                        outfile.write(",")
+                        
+    def write_lines(self, outfile, key_coder=json.dumps, value_coder=json.dumps, separator="\n", key_val_separator="\t"):
+        with self.lock:
+            iterator = iter(self.items())
+            try:
+                try:
+                    this = iterator.__next__()
+                except AttributeError:
+                    this = iterator.next()
+            except StopIteration:
+                return
+            else:
+                while True:
+                    outfile.write(key_coder(this[0]))
+                    outfile.write(key_val_separator)
+                    outfile.write(value_coder(this[1]))
+                    outfile.write(separator)
+                    try:
+                        try:
+                            this = iterator.__next__()
+                        except AttributeError:
+                            this = iterator.next()
+                    except StopIteration:
+                        break
+                    

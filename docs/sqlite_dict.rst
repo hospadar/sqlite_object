@@ -114,6 +114,22 @@ Other functions
     
     **values() may not lock the underlying database, so if modifications to the DB are made during iteration, the behavior of items will be unpredictable**
     
+.. py:function:: write(file)
+
+    Write the dictionary as JSON to a file.
+    
+    :param file: a file object to write to.
+    
+.. py:function:: write_lines(self, file, key_coder=json.dumps, value_coder=json.dumps, separator="\\n", key_val_separator="\\t")
+    
+    Write the dictionary to a file, one item per line, keys and values separated by a tab.
+    
+    :param file: File to write to
+    :param key_coder: Serialization function to use for serializing keys
+    :param value_coder: Serialization function to use for serializing values
+    :param separator: Optional line separator if you don't want newlines
+    :param key_val_separator: Optional separator to go between keys and values if you don't want to use a tab character
+    
 .. py:function:: close():
     
     Explicitly close the database, deleting the database file if persist=False
