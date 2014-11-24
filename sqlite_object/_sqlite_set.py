@@ -134,7 +134,7 @@ class SqliteSet(SqliteObject):
                 
     def write(self, outfile):
         with self.lock:
-            outfile.write("[")
+            outfile.write(u"[")
             iterator = iter(self)
             try:
                 try:
@@ -142,23 +142,23 @@ class SqliteSet(SqliteObject):
                 except AttributeError:
                     this = iterator.next()
             except StopIteration:
-                outfile.write("]")
+                outfile.write(u"]")
                 return
             else:
                 while True:
-                    outfile.write(json.dumps(this))
+                    outfile.write(unicode(json.dumps(this)))
                     try:
                         try:
                             this = iterator.__next__()
                         except AttributeError:
                             this = iterator.next()
                     except StopIteration:
-                        outfile.write("]")
+                        outfile.write(u"]")
                         break
                     else:
-                        outfile.write(",")
+                        outfile.write(u",")
                         
-    def write_lines(self, outfile, coder=json.dumps, separator="\n"):
+    def write_lines(self, outfile, coder=json.dumps, separator=u"\n"):
         with self.lock:
             iterator = iter(self)
             try:
@@ -170,8 +170,8 @@ class SqliteSet(SqliteObject):
                 return
             else:
                 while True:
-                    outfile.write(coder(this))
-                    outfile.write(separator)
+                    outfile.write(unicode(coder(this)))
+                    outfile.write(unicode(separator))
                     try:
                         try:
                             this = iterator.__next__()

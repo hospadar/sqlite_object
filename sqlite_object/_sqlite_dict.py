@@ -201,7 +201,7 @@ class SqliteDict(SqliteObject):
     
     def write(self, outfile):
         with self.lock:
-            outfile.write("{")
+            outfile.write(u"{")
             iterator = iter(self.items())
             try:
                 try:
@@ -213,21 +213,21 @@ class SqliteDict(SqliteObject):
                 return
             else:
                 while True:
-                    outfile.write(json.dumps(str(this[0])))
-                    outfile.write(":")
-                    outfile.write(json.dumps(this[1]))
+                    outfile.write(unicode(json.dumps(str(this[0]))))
+                    outfile.write(u":")
+                    outfile.write(unicode(json.dumps(this[1])))
                     try:
                         try:
                             this = iterator.__next__()
                         except AttributeError:
                             this = iterator.next()
                     except StopIteration:
-                        outfile.write("}")
+                        outfile.write(u"}")
                         break
                     else:
-                        outfile.write(",")
+                        outfile.write(u",")
                         
-    def write_lines(self, outfile, key_coder=json.dumps, value_coder=json.dumps, separator="\n", key_val_separator="\t"):
+    def write_lines(self, outfile, key_coder=json.dumps, value_coder=json.dumps, separator=u"\n", key_val_separator=u"\t"):
         with self.lock:
             iterator = iter(self.items())
             try:
@@ -239,10 +239,10 @@ class SqliteDict(SqliteObject):
                 return
             else:
                 while True:
-                    outfile.write(key_coder(this[0]))
-                    outfile.write(key_val_separator)
-                    outfile.write(value_coder(this[1]))
-                    outfile.write(separator)
+                    outfile.write(unicode(key_coder(this[0])))
+                    outfile.write(unicode(key_val_separator))
+                    outfile.write(unicode(value_coder(this[1])))
+                    outfile.write(unicode(separator))
                     try:
                         try:
                             this = iterator.__next__()
