@@ -125,6 +125,10 @@ class TestSqliteObjects(unittest.TestCase):
         l.write_lines(io)
         self.assertEqual(["0", "1", "2", "3", "4"], io.getvalue().strip().split("\n"))
         
+        l = SqliteList(range(10))
+        self.assertTrue(1 in l)
+        self.assertFalse(11 in l)
+        
     def run_dict_tests(self, d):
         d["1"] = "a"
         d["2"] = "b"
@@ -268,6 +272,10 @@ class TestSqliteObjects(unittest.TestCase):
         s.write_lines(io)
         self.assertEqual({"1", "2", "3", "4", "5"}, set(io.getvalue().strip().split("\n")))
         self.assertEqual(["1", "2", "3", "4", "5"], sorted(io.getvalue().strip().split("\n")))
+        
+        s = SqliteSet({1, 2, 3, 4, 5})
+        self.assertIn(1, s)
+        self.assertNotIn(6, s)
         
         
 if __name__ == '__main__':

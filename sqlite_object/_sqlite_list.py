@@ -8,6 +8,11 @@ l.append("hi")
 l.append("another one!")
 """
 
+try:
+    unicode("hello")
+except NameError:
+    unicode = str
+
 class SqliteList(SqliteObject):
     """
     List-like object backed by an on-disk SQL db
@@ -134,7 +139,7 @@ class SqliteList(SqliteObject):
     def __contains__(self, item):
         with self.lock:
             with self._closeable_cursor() as cursor:
-                cursor.execute('''SELECT list_index FROM list WHERE value = ?''', (self._coder(value), ))
+                cursor.execute('''SELECT list_index FROM list WHERE value = ?''', (self._coder(item), ))
                 if cursor.fetchone() != None:
                     return True
                 else:

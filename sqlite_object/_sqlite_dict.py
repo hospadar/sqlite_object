@@ -1,6 +1,10 @@
 from ._sqlite_object import SqliteObject
 import json, uuid
 
+try:
+    unicode("hello")
+except NameError:
+    unicode = str
 
 class SqliteDict(SqliteObject):
     """

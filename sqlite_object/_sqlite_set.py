@@ -1,6 +1,11 @@
 import json, uuid
 from ._sqlite_object import SqliteObject
 
+try:
+    unicode("hello")
+except NameError:
+    unicode = str
+
 class SqliteSet(SqliteObject):
     __schema = '''CREATE TABLE IF NOT EXISTS set_table (key TEXT PRIMARY KEY)'''
     __index = '''CREATE INDEX IF NOT EXISTS set_index ON set_table (key)'''
